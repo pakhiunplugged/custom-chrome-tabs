@@ -4,7 +4,6 @@ import android.content.ComponentName;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
-import android.support.customtabs.CustomTabsCallback;
 import android.support.customtabs.CustomTabsClient;
 import android.support.customtabs.CustomTabsIntent;
 import android.support.customtabs.CustomTabsServiceConnection;
@@ -19,35 +18,31 @@ public class customChromeTabs extends AppCompatActivity {
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        createConnection();
         launchCustomTabs();
-        //createConnection();
     }
-
+    //Only this function is responsible for launching of tab event and display website content
     private void launchCustomTabs()
     {
         CustomTabsIntent.Builder myBuilder = new CustomTabsIntent.Builder();
+        myBuilder.setShowTitle(true);
+        myBuilder.addDefaultShareMenuItem();
+        myBuilder.setToolbarColor(getResources().getColor(R.color.colorAccent));
+        myBuilder.addMenuItem("Add me",null);
         CustomTabsIntent myIntent = myBuilder.build();
         myIntent.launchUrl(this, Uri.parse("https://www.github.com/getsanjeev"));
     }
 
-    private CustomTabsSession getSession() {
-        return mClient.newSession(new CustomTabsCallback() {
-            @Override
-            public void onNavigationEvent(int navigationEvent, Bundle extras) {
-                super.onNavigationEvent(navigationEvent, extras);
-            }
-        });
-    }
-
-
+    // This function is called to optimize the event, causes the browser to be ready for launching URL
     private void createConnection()
     {
         CustomTabsServiceConnection connection = new CustomTabsServiceConnection() {
             @Override
             public void onCustomTabsServiceConnected(ComponentName name, CustomTabsClient client) {
                 mClient = client;
-                Toast.makeText(customChromeTabs.this, "Welcome i am in conn", Toast.LENGTH_SHORT).show();
-                launchCustomTabs();
+                mClient.warmup(0L);
+                CustomTabsSession mTabSession = mClient.newSession(null);
+                mTabSession.mayLaunchUrl(Uri.parse("https://github.com/getsanjeev"),null,null);
             }
 
             @Override
